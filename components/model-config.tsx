@@ -1,101 +1,179 @@
-interface ModelConfigProps {}
-import { Button } from '@/components/ui/button'
+'use client'
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog'
+import { getModelIcon } from '@/components/ui/icons'
+import { Models } from '@/lib/types'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@radix-ui/react-collapsible'
+import {
+  ChevronsUpDown,
+  CircleMinus,
+  CirclePlus,
+  SquareArrowOutUpRight
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import Link from 'next/link'
 import { MixerHorizontalIcon } from '@radix-ui/react-icons'
+import { useState } from 'react'
 
-export function ModelConfig({}: ModelConfigProps) {
+export function ModelConfig({
+  allModels
+}: {
+  allModels: Array<{ id: string; data: any }>
+}) {
+  function onModelClick(mdl: any) {}
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="outline" size="icon">
-          <MixerHorizontalIcon />
-        </Button>
-      </DropdownMenuTrigger>
+    <Dialog>
+      <DialogTrigger>
+        {' '}
+        <MixerHorizontalIcon />
+      </DialogTrigger>
+      <DialogContent className="flex flex-col h-3/4  w-screen overflow-auto">
+        <DialogTitle>Are you absolutely sure?</DialogTitle>
+        <DialogDescription>asd</DialogDescription>
+        {allModels.map(mdl => (
+          <Collapsible
+            key={mdl.id}
+            className=" flex flex-col font-GeistSans  text-white border border-noble-black-800 hover:border-stem-green-500 duration-200 border-collapse rounded-lg p-2 justify "
+          >
+            <div className="flex items-start justify-start">
+              <SaveModel onClick={() => onModelClick(mdl)} />
+              <CollapsibleTrigger className="flex flex-col flex-1 text-center relative items-center justify-center ">
+                <div className="flex gap-2  w-full      justify-start items-center  pl-10">
+                  {getModelIcon(`${mdl.data!.architecture.tokenizer}`)}
+                  <p className="max-w-72 truncate  p-1  duration-300   overflow-clip ">
+                    {mdl.data.name}
+                  </p>
+                </div>
 
-      <DropdownMenuContent align="center" className="p-2">
-        model config is in development :)
-      </DropdownMenuContent>
-    </DropdownMenu>
+                <div className="flex  text-xs text-noble-black-300 items-center     gap-10">
+                  <div className="flex flex-col   p-1">
+                    Context
+                    <div className="border-b border-stem-green-500/50" />
+                    <span className="ml-1  m-1">{mdl.data.context_length}</span>
+                  </div>{' '}
+                  <div className="flex flex-col   p-1">
+                    Input
+                    <div className="border-b border-stem-green-500/50" />
+                    <span className="ml-1 mt-1">
+                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
+                        2
+                      )}{' '}
+                      $
+                    </span>
+                  </div>{' '}
+                  <div className="flex flex-col   p-1">
+                    Output
+                    <div className="border-b border-stem-green-500/50" />
+                    <span className="ml-1 mt-1">
+                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
+                        2
+                      )}{' '}
+                      $
+                    </span>
+                  </div>{' '}
+                  <div className="flex flex-col   p-1">
+                    Image
+                    <div className="border-b border-stem-green-500/50" />
+                    <span className="ml-1  mt-1">
+                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
+                        2
+                      )}{' '}
+                      $
+                    </span>
+                  </div>
+                </div>
+
+                <ChevronsUpDown
+                  height={30}
+                  width={30}
+                  strokeWidth={2}
+                  className="border p-1 -z-10 rounded-lg absolute top-0 right-0"
+                />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="flex flex-col  py-2">
+              <p className="p-2 border-y text-center    break-words border-x-lime-400">
+                {mdl.data.description}
+                <Link
+                  href={`https://openrouter.ai/models/${mdl.data.id}`}
+                  passHref
+                  legacyBehavior
+                >
+                  <a target="_blank" rel="noopener noreferrer">
+                    <SquareArrowOutUpRight
+                      height={25}
+                      width={25}
+                      className="text-noble-black-300 duration-200 hover:text-lime-400"
+                    />
+                  </a>
+                </Link>
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
+      </DialogContent>
+    </Dialog>
   )
 }
 
-// TODO: DELETE THIS
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter
-} from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+export function CheckBox() {
+  const [isCheck, setIsChecked] = useState<boolean>(false)
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsChecked(event.target.checked)
+  }
 
-export function TabsDemo() {
   return (
-    <Tabs defaultValue="account" className="w-[350px]">
-      <TabsList className="grid grid-cols-2 mt-1">
-        <TabsTrigger value="account">Only This Chat</TabsTrigger>
-        <TabsTrigger value="password">All llama2 Chats</TabsTrigger>
-        {/* <TabsTrigger value="all">All Chats</TabsTrigger> */}
-      </TabsList>
-      <TabsContent value="account">
-        <CardDescription className="text-center p-2">
-          This Configuration will only affect this chat.
-        </CardDescription>
-        <Card className="border-none">
-          {/* <CardHeader >
-            <CardTitle>Conversation</CardTitle>
-            <CardDescription>
-              This Configuration will only affect this chat.
-            </CardDescription>
-          </CardHeader> */}
+    <div className="inline-flex w-fit items-center">
+      <input
+        type="checkbox"
+        className="form-checkbox h-5 w-5 text-blue-600"
+        checked={isCheck} // Bind the checked attribute to the isCheck state
+        onChange={handleChange} // Handle changes to update the state
+      />
+    </div>
+  )
+}
 
-          <CardContent className="space-y-2 px-[1rem] pb-[1rem]">
-            {/* <div className="space-y-1">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" defaultValue="Pedro Duarte" />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" defaultValue="@peduarte" />
-            </div> */}
-            {/* <TemperatureSelector defaultValue={[0.56]} />
-            <TemperatureSelector defaultValue={[0.56]} />
-            <TemperatureSelector defaultValue={[0.56]} />
-            <TemperatureSelector defaultValue={[0.56]} /> */}
-          </CardContent>
-          <CardFooter className="flex justify-between px-[1rem] pb-[1rem]">
-            <Button variant="outline">Cancel</Button>
-            <Button>Save</Button>
-          </CardFooter>
-        </Card>
-      </TabsContent>
-      <TabsContent value="password">
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-            <CardDescription>
-              Change your password here. After saving, you'll be logged out.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="current">Current password</Label>
-              <Input id="current" type="password" />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="new">New password</Label>
-              <Input id="new" type="password" />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button>Save password</Button>
-          </CardFooter>
-        </Card> */}
-      </TabsContent>
-    </Tabs>
+interface SaveModelProps {
+  onClick: () => void
+}
+
+export function SaveModel({ onClick }: SaveModelProps) {
+  const isSelected = false
+  return (
+    <>
+      {isSelected ? (
+        <Button
+          onClick={onClick}
+          variant="outline"
+          size={'icon'}
+          className=" active:scale-110 active:duration-200 transition-transform bg-transparent hover:bg-transparent text-white border hover:border-stem-green-400"
+        >
+          {' '}
+          <CircleMinus height={20} width={20} strokeWidth={1.5} />
+        </Button>
+      ) : (
+        <Button
+          onClick={onClick}
+          variant="outline"
+          size={'icon'}
+          className=" active:scale-110 active:duration-200 transition-transform bg-transparent hover:bg-transparent text-white border hover:border-stem-green-400"
+        >
+          <CirclePlus height={20} width={20} strokeWidth={1.5} />
+        </Button>
+      )}
+    </>
   )
 }

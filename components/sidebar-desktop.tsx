@@ -18,14 +18,20 @@ import { cn } from '@/lib/utils'
 interface SidebarDesktopProps {
   side: 'left' | 'right'
   children: React.ReactNode
+  classNames?: string
 }
 
-export async function SidebarDesktop({ children, side }: SidebarDesktopProps) {
+export async function SidebarDesktop({
+  classNames,
+  children,
+  side
+}: SidebarDesktopProps) {
   return (
     <Sidebar
       side={side}
       className={cn(
-        'peer absolute inset-y-0 z-30 hidden bg-background duration-300 ease-in-out data-[state=open]:translate-x-0 lg:flex lg:w-[250px] xl:w-[300px]',
+
+        `${classNames || ''} peer absolute inset-y-0  z-30 hidden bg-background duration-300 ease-in-out data-[state=open]:translate-x-0 lg:flex ${side == 'left' ? 'lg:w-[350px] xl:w-600px]' : 'lg:w-[250px] xl:w-[300px]'} `,
         side === 'left'
           ? 'border-r left-0 -translate-x-full'
           : 'border-l right-0 translate-x-full'

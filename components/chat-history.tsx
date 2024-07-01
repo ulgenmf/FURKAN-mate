@@ -21,7 +21,7 @@ export function ChatHistory({}: ChatHistoryProps) {
             'h-10 w-full justify-start bg-background px-4 shadow-none transition-colors hover:bg-zinc-200/40 dark:hover:bg-zinc-300/10'
           )}
         >
-          <IconPlus className="-translate-x-2 stroke-2" />
+          <IconPlus className="  stroke-2" />
           New Chat
         </Link>
       </div>
@@ -37,7 +37,7 @@ export function ChatHistory({}: ChatHistoryProps) {
           </div>
         }
       >
-        <SidebarList />
+        <SidebarList  />
       </React.Suspense>
     </div>
   )

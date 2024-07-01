@@ -49,7 +49,7 @@ export function SidebarMobile({ children, side }: SidebarMobileProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="-ml-2 flex size-9 p-0 lg:hidden">
+        <Button variant="ghost" className="-ml-2  flex size-9 p-0 lg:hidden">
           <IconSidebar
             className={cn(side === 'right' ? 'rotate-180' : '', 'size-6')}
           />
@@ -59,7 +59,7 @@ export function SidebarMobile({ children, side }: SidebarMobileProps) {
       <SheetContent
         side={side}
         className={cn(
-          'inset-y-0 flex h-auto w-[300px] flex-col p-0',
+          'inset-y-0 flex h-secreen bg-background w-[300px] flex-col p-0',
           side === 'right' ? 'right-0' : 'left-0'
         )}
       >

@@ -1,0 +1,54 @@
+// schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String      @id @default(dbgenerated("uuid_generate_v1()")) @db.Uuid
+  password String
+  email    String      @unique
+  name     String
+  apiKeys  Json
+  models   UserModel[]
+  chats    Chat[]
+}
+
+model Chat {
+  id        String    @id
+  title     String
+  createdAt DateTime  @default(now())
+  modelId   String
+  path      String
+  sharePath String?
+  messages  Message[]
+  model     UserModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String    @db.Uuid
+}
+
+model Message {
+  id        String   @id
+  content   String
+  createdAt DateTime @default(now())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model UserModel {
+  id     String @id
+  data   Json
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.Uuid
+  Chat   Chat[]
+}
+
+model AIModelPool {
+  id   String @id
+  data Json
+}

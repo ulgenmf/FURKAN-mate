@@ -21,7 +21,7 @@ export function ModelItem({
   onPeek
 }: ModelItemProps) {
   const ref = React.useRef<HTMLDivElement>(null)
-  const icon = getModelIcon(model.created_by)
+  const icon = getModelIcon(model.data.architecture.tokenizer)
 
   useMutationObserver(ref, mutations => {
     for (const mutation of mutations) {
@@ -42,7 +42,7 @@ export function ModelItem({
     >
       <span className="mr-2">{icon}</span>
       <span className="truncate max-w-[200px] @sm:max-w-[300px] text-xs">
-        {model.name}
+        {model.id}
       </span>
       <CheckIcon
         className={cn(

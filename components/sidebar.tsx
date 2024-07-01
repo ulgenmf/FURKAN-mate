@@ -41,7 +41,10 @@ export function Sidebar({ className, children, side }: SidebarProps) {
     <div
       data-state={isSidebarOpen && !isLoading ? 'open' : 'closed'}
       // data-state-right={isRightSidebarOpen && !isLoading ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(
+        className,
+        `${side == 'left' ? 'ml-2 ' : 'mr-2'}   rounded-2xl   flex-col  my-2 dark:bg-zinc-950`
+      )}
     >
       {children}
     </div>

@@ -1,17 +1,7 @@
-import { type Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
-
-import {
-  getChat,
-  getChats,
-  getModelsList,
-  getOllamaModels,
-  isOllamaAvailable,
-  syncModels
-} from '@/app/actions'
+import { redirect } from 'next/navigation'
 import { Chat } from '@/components/chat'
 import { AI } from '@/lib/chat/actions'
-import { Model } from 'openai/resources'
+import { getChat, getModelsList } from '@/app/actions'
 
 export interface ChatPageProps {
   params: {

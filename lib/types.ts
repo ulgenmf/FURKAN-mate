@@ -1,13 +1,8 @@
+import { Prisma } from '@prisma/client'
+import { JsonValue } from '@prisma/client/runtime/library'
 import { Message } from 'ai'
 
-export interface Chat extends Record<string, any> {
-  id: string
-  title: string
-  createdAt: Date
-  path: string
-  messages: Message[]
-  sharePath?: string
-}
+
 
 export interface Model {
   id: number
@@ -25,10 +20,6 @@ export interface Model {
   min_config: Record<string, any>
 }
 
-export interface Models {
-  [key: string]: Model
-}
-
 export type ServerActionResult<Result> = Promise<
   | Result
   | {
@@ -41,4 +32,9 @@ export interface User extends Record<string, any> {
   email: string
   password: string
   salt: string
+}
+
+export interface Models {
+  id: string
+  data: JsonValue
 }

@@ -20,17 +20,17 @@ import { useInput } from '@/lib/hooks/use-form-input'
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
-  models: Models
+  allModels: Models[]
+  usersModels: Models[]
 }
 
-export function Chat({ id, className, models }: ChatProps) {
+export function Chat({ id, className, allModels, usersModels }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   // const [input, setInput] = useState('')
   const { inputValue, setInputValue } = useInput()
   const [messages] = useUIState()
   const [aiState] = useAIState()
-
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   useEffect(() => {
@@ -56,7 +56,6 @@ export function Chat({ id, className, models }: ChatProps) {
     useScrollAnchor()
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar()
-
   return (
     <div
       // className="group w-full overflow-auto duration-300 ease-in-out pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px] no-scrollbar"
@@ -67,7 +66,7 @@ export function Chat({ id, className, models }: ChatProps) {
       )}
       ref={scrollRef}
     >
-      <Header models={models} />
+      <Header usersModels={usersModels} allModels={allModels} />
       <div className={cn('pb-[200px]', className)} ref={messagesRef}>
         {messages.length ? <ChatList messages={messages} /> : <EmptyScreen />}
         <div className="h-px w-full" ref={visibilityRef} />

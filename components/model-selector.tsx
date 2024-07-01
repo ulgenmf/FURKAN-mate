@@ -23,10 +23,10 @@ import {
 } from '@/components/ui/popover'
 
 interface ModelSelectorProps {
-  models: Models
+  usersModels: Models[]
 }
 
-export function ModelSelector({ models }: ModelSelectorProps) {
+export function ModelSelector({ usersModels }: ModelSelectorProps) {
   // url and check if include something after chat then don't allow to change model
   const pathname = usePathname()
   const router = useRouter()
@@ -34,14 +34,14 @@ export function ModelSelector({ models }: ModelSelectorProps) {
   const [aiState, setAIState] = useAIState()
 
   const [open, setOpen] = React.useState(false)
-  const [peekedModel, setPeekedModel] = React.useState<any>(models[0])
-  const installed = Object.values(models).filter(model => model.installed)
+  const [peekedModel, setPeekedModel] = React.useState<any>(usersModels[0].id)
 
   const [selectedModel, setSelectedModel] = React.useState<any>(
-    aiState.model ?? installed[0]
+    aiState.model ?? usersModels[0].id
   )
 
-  const icon = getModelIcon(selectedModel.created_by)
+  // const icon = getModelIcon(selectedModel?.data.architecture.tokenizer)
+  const icon = 's'
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,15 +70,15 @@ export function ModelSelector({ models }: ModelSelectorProps) {
           <CommandList className="h-fit max-h-[300px] overflow-y-auto overflow-x-hidden md:max-h-[450px] z-50">
             <CommandEmpty>No Models found.</CommandEmpty>
             <CommandGroup heading="Private AI">
-              {installed.map(model => (
+              {usersModels.map(model => (
                 <ModelItem
                   key={model.id}
-                  model={model}
+                  model={model.id}
                   isSelected={selectedModel?.id === model.id}
                   onPeek={model => setPeekedModel(model)}
                   onSelect={() => {
                     if (pathname.includes('/chat/')) {
-                      router.push(`/?model=${model.name}`)
+                      router.push(`/?model=${model.id}`)
                     } else {
                       setSelectedModel(model)
                       setAIState({ ...aiState, model: model })

@@ -33,7 +33,7 @@ interface PromptListProps {
   children?: React.ReactNode
 }
 
-export async function PromptList({}: PromptListProps) {
+export function PromptList({}: PromptListProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center justify-between p-4">
@@ -83,18 +83,14 @@ export function PromptCard({ prompt }: any) {
             {prompt.title}
           </span>
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 p-0 hover:bg-gray-100 dark:hover:bg-zinc-800"
-              >
+            <DropdownMenuTrigger typeof="div">
+              <>
                 {isAction ? (
                   <CheckIcon className="size-4" />
                 ) : (
                   <DotsHorizontalIcon className="size-4" />
                 )}
-              </Button>
+              </>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem

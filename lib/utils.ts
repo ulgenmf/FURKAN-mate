@@ -87,3 +87,38 @@ export const getMessageFromCode = (resultCode: string) => {
       return 'Logged in!'
   }
 }
+
+const tailwindColors = [
+  'red',
+  'blue',
+  'green',
+  'yellow',
+  'purple',
+  'pink',
+  'indigo',
+  'teal',
+  'orange',
+  'cyan'
+]
+
+let shuffledColors = [...tailwindColors]
+let currentIndex = 0
+
+// Fisher-Yates shuffle algorithm to randomize array order
+function shuffleArray(array: string[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+}
+
+shuffleArray(shuffledColors) // Initial shuffle
+
+export const randomColor = () => {
+  if (currentIndex >= shuffledColors.length) {
+    // Reshuffle when reaching the end of the array
+    shuffleArray(shuffledColors)
+    currentIndex = 0 // Reset index after reshuffling
+  }
+  return shuffledColors[currentIndex++]
+}

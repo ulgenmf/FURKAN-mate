@@ -12,23 +12,26 @@ import { ModelConfig } from './model-config'
 import { Models } from '@/lib/types'
 
 import { PromptLibrary } from './prompt-library'
+import SidebarWrapper from './side-bar/side-bar-wrapper'
 
 interface HeaderProps {
-  models: Models
+  usersModels: Models[]
+  allModels: Models[]
 }
 
-export function Header({ models }: HeaderProps) {
+export function Header({ usersModels, allModels }: HeaderProps) {
+  console.log(usersModels)
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between w-full h-16 px-3 border-b shrink-0 bg-background ">
+    <header className="sticky top-2 z-50 flex items-center justify-between    h-16 w-2/3  border-b  px-3 m-auto   rounded-2xl bg-secondary ">
       <div className="flex items-center">
         <SidebarMobile side="left">
-          <ChatHistory />
+          <SidebarWrapper />
         </SidebarMobile>
         <SidebarToggle side="left" />
 
         <div className="flex flex-row space-x-2 ml-2">
-          <ModelSelector models={models} />
-          <ModelConfig />
+          <ModelSelector usersModels={allModels} />
+          <ModelConfig allModels={allModels} />
         </div>
       </div>
 

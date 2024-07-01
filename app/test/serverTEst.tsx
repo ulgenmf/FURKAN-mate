@@ -5,10 +5,10 @@ import {
   createStreamableUI,
   getMutableAIState,
   getAIState,
-  render,
+  streamUI,
   createStreamableValue
 } from 'ai/rsc'
-import OpenAI from 'openai'
+import { openai } from '@ai-sdk/openai'
 
 import {
   spinner,
@@ -18,8 +18,6 @@ import {
   Stock,
   Purchase
 } from '@/components/stocks'
-
-// TODO: Remove Stock UI only text for now
 
 import { z } from 'zod'
 import { EventsSkeleton } from '@/components/stocks/events-skeleton'
@@ -35,14 +33,8 @@ import {
 } from '@/lib/utils'
 import { saveChat } from '@/app/actions'
 import { SpinnerMessage, UserMessage } from '@/components/stocks/message'
-import { Chat } from '@/lib/types'
-// import { auth } from '@/auth'
-
-const openai = new OpenAI({
-  // apiKey: process.env.OPENAI_API_KEY || ''
-  apiKey: 'ollama', // required but unused
-  baseURL: 'http://localhost:11434/v1'
-})
+import { Chat, Message } from '@/lib/types'
+import { auth } from '@/auth'
 
 async function confirmPurchase(symbol: string, price: number, amount: number) {
   'use server'
@@ -93,18 +85,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
     aiState.done({
       ...aiState.get(),
       messages: [
-        ...aiState.get().messages.slice(0, -1),
-        {
-          id: nanoid(),
-          role: 'function',
-          name: 'showStockPurchase',
-          content: JSON.stringify({
-            symbol,
-            price,
-            defaultAmount: amount,
-            status: 'completed'
-          })
-        },
+        ...aiState.get().messages,
         {
           id: nanoid(),
           role: 'system',
@@ -145,32 +126,25 @@ async function submitUserMessage(content: string) {
   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
   let textNode: undefined | React.ReactNode
 
-  const selectedModel = aiState.get().model || 'gpt-3.5-turbo'
-
-  const ui = render({
-    // model: 'gpt-3.5-turbo',
-    model: selectedModel,
-    provider: openai,
+  const result = await streamUI({
+    model: openai('gpt-3.5-turbo'),
     initial: <SpinnerMessage />,
+    system: `\
+    You are a stock trading conversation bot and you can help users buy stocks, step by step.
+    You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
+
+    Messages inside [] means that it's a UI element or a user event. For example:
+    - "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
+    - "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
+
+    If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
+    If the user just wants the price, call \`show_stock_price\` to show the price.
+    If you want to show trending stocks, call \`list_stocks\`.
+    If you want to show events, call \`get_events\`.
+    If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
+
+    Besides that, you can also chat with users and do some calculations if needed.`,
     messages: [
-      {
-        role: 'system',
-        content: `\
-You are a stock trading conversation bot and you can help users buy stocks, step by step.
-You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
-
-Messages inside [] means that it's a UI element or a user event. For example:
-- "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
-- "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
-
-If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
-If the user just wants the price, call \`show_stock_price\` to show the price.
-If you want to show trending stocks, call \`list_stocks\`.
-If you want to show events, call \`get_events\`.
-If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
-
-Besides that, you can also chat with users and do some calculations if needed.`
-      },
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
         content: message.content,
@@ -202,7 +176,7 @@ Besides that, you can also chat with users and do some calculations if needed.`
 
       return textNode
     },
-    functions: {
+    tools: {
       listStocks: {
         description: 'List three imaginary stocks that are trending.',
         parameters: z.object({
@@ -214,7 +188,7 @@ Besides that, you can also chat with users and do some calculations if needed.`
             })
           )
         }),
-        render: async function* ({ stocks }) {
+        generate: async function* ({ stocks }) {
           yield (
             <BotCard>
               <StocksSkeleton />
@@ -223,15 +197,35 @@ Besides that, you can also chat with users and do some calculations if needed.`
 
           await sleep(1000)
 
+          const toolCallId = nanoid()
+
           aiState.done({
             ...aiState.get(),
             messages: [
               ...aiState.get().messages,
               {
                 id: nanoid(),
-                role: 'function',
-                name: 'listStocks',
-                content: JSON.stringify(stocks)
+                role: 'assistant',
+                content: [
+                  {
+                    type: 'tool-call',
+                    toolName: 'listStocks',
+                    toolCallId,
+                    args: { stocks }
+                  }
+                ]
+              },
+              {
+                id: nanoid(),
+                role: 'tool',
+                content: [
+                  {
+                    type: 'tool-result',
+                    toolName: 'listStocks',
+                    toolCallId,
+                    result: stocks
+                  }
+                ]
               }
             ]
           })
@@ -255,7 +249,7 @@ Besides that, you can also chat with users and do some calculations if needed.`
           price: z.number().describe('The price of the stock.'),
           delta: z.number().describe('The change in price of the stock')
         }),
-        render: async function* ({ symbol, price, delta }) {
+        generate: async function* ({ symbol, price, delta }) {
           yield (
             <BotCard>
               <StockSkeleton />
@@ -264,15 +258,35 @@ Besides that, you can also chat with users and do some calculations if needed.`
 
           await sleep(1000)
 
+          const toolCallId = nanoid()
+
           aiState.done({
             ...aiState.get(),
             messages: [
               ...aiState.get().messages,
               {
                 id: nanoid(),
-                role: 'function',
-                name: 'showStockPrice',
-                content: JSON.stringify({ symbol, price, delta })
+                role: 'assistant',
+                content: [
+                  {
+                    type: 'tool-call',
+                    toolName: 'showStockPrice',
+                    toolCallId,
+                    args: { symbol, price, delta }
+                  }
+                ]
+              },
+              {
+                id: nanoid(),
+                role: 'tool',
+                content: [
+                  {
+                    type: 'tool-result',
+                    toolName: 'showStockPrice',
+                    toolCallId,
+                    result: { symbol, price, delta }
+                  }
+                ]
               }
             ]
           })
@@ -300,12 +314,43 @@ Besides that, you can also chat with users and do some calculations if needed.`
               'The **number of shares** for a stock or currency to purchase. Can be optional if the user did not specify it.'
             )
         }),
-        render: async function* ({ symbol, price, numberOfShares = 100 }) {
+        generate: async function* ({ symbol, price, numberOfShares = 100 }) {
+          const toolCallId = nanoid()
+
           if (numberOfShares <= 0 || numberOfShares > 1000) {
             aiState.done({
               ...aiState.get(),
               messages: [
                 ...aiState.get().messages,
+                {
+                  id: nanoid(),
+                  role: 'assistant',
+                  content: [
+                    {
+                      type: 'tool-call',
+                      toolName: 'showStockPurchase',
+                      toolCallId,
+                      args: { symbol, price, numberOfShares }
+                    }
+                  ]
+                },
+                {
+                  id: nanoid(),
+                  role: 'tool',
+                  content: [
+                    {
+                      type: 'tool-result',
+                      toolName: 'showStockPurchase',
+                      toolCallId,
+                      result: {
+                        symbol,
+                        price,
+                        numberOfShares,
+                        status: 'expired'
+                      }
+                    }
+                  ]
+                },
                 {
                   id: nanoid(),
                   role: 'system',
@@ -315,37 +360,55 @@ Besides that, you can also chat with users and do some calculations if needed.`
             })
 
             return <BotMessage content={'Invalid amount'} />
+          } else {
+            aiState.done({
+              ...aiState.get(),
+              messages: [
+                ...aiState.get().messages,
+                {
+                  id: nanoid(),
+                  role: 'assistant',
+                  content: [
+                    {
+                      type: 'tool-call',
+                      toolName: 'showStockPurchase',
+                      toolCallId,
+                      args: { symbol, price, numberOfShares }
+                    }
+                  ]
+                },
+                {
+                  id: nanoid(),
+                  role: 'tool',
+                  content: [
+                    {
+                      type: 'tool-result',
+                      toolName: 'showStockPurchase',
+                      toolCallId,
+                      result: {
+                        symbol,
+                        price,
+                        numberOfShares
+                      }
+                    }
+                  ]
+                }
+              ]
+            })
+
+            return (
+              <BotCard>
+                <Purchase
+                  props={{
+                    numberOfShares,
+                    symbol,
+                    price: +price,
+                    status: 'requires_action'
+                  }}
+                />
+              </BotCard>
+            )
           }
-
-          aiState.done({
-            ...aiState.get(),
-            messages: [
-              ...aiState.get().messages,
-              {
-                id: nanoid(),
-                role: 'function',
-                name: 'showStockPurchase',
-                content: JSON.stringify({
-                  symbol,
-                  price,
-                  numberOfShares
-                })
-              }
-            ]
-          })
-
-          return (
-            <BotCard>
-              <Purchase
-                props={{
-                  numberOfShares,
-                  symbol,
-                  price: +price,
-                  status: 'requires_action'
-                }}
-              />
-            </BotCard>
-          )
         }
       },
       getEvents: {
@@ -362,7 +425,7 @@ Besides that, you can also chat with users and do some calculations if needed.`
             })
           )
         }),
-        render: async function* ({ events }) {
+        generate: async function* ({ events }) {
           yield (
             <BotCard>
               <EventsSkeleton />
@@ -371,15 +434,35 @@ Besides that, you can also chat with users and do some calculations if needed.`
 
           await sleep(1000)
 
+          const toolCallId = nanoid()
+
           aiState.done({
             ...aiState.get(),
             messages: [
               ...aiState.get().messages,
               {
                 id: nanoid(),
-                role: 'function',
-                name: 'getEvents',
-                content: JSON.stringify(events)
+                role: 'assistant',
+                content: [
+                  {
+                    type: 'tool-call',
+                    toolName: 'getEvents',
+                    toolCallId,
+                    args: { events }
+                  }
+                ]
+              },
+              {
+                id: nanoid(),
+                role: 'tool',
+                content: [
+                  {
+                    type: 'tool-result',
+                    toolName: 'getEvents',
+                    toolCallId,
+                    result: events
+                  }
+                ]
               }
             ]
           })
@@ -396,21 +479,12 @@ Besides that, you can also chat with users and do some calculations if needed.`
 
   return {
     id: nanoid(),
-    display: ui
+    display: result.value
   }
-}
-
-export type Message = {
-  role: 'user' | 'assistant' | 'system' | 'function' | 'data' | 'tool'
-  content: string
-  id: string
-  name?: string
 }
 
 export type AIState = {
   chatId: string
-  // add model selected and other info
-  model?: string
   messages: Message[]
 }
 
@@ -426,15 +500,10 @@ export const AI = createAI<AIState, UIState>({
   },
   initialUIState: [],
   initialAIState: { chatId: nanoid(), messages: [] },
-  unstable_onGetUIState: async () => {
+  onGetUIState: async () => {
     'use server'
 
-    const session = {
-      user: {
-        id: '123',
-        email: ''
-      }
-    }
+    const session = await auth()
 
     if (session && session.user) {
       const aiState = getAIState()
@@ -447,22 +516,20 @@ export const AI = createAI<AIState, UIState>({
       return
     }
   },
-  unstable_onSetAIState: async ({ state, done }) => {
+  onSetAIState: async ({ state }) => {
     'use server'
 
-    const session = {
-      user: {
-        id: '123',
-        email: ''
-      }
-    }
+    const session = await auth()
+
     if (session && session.user) {
       const { chatId, messages } = state
 
       const createdAt = new Date()
       const userId = session.user.id as string
       const path = `/chat/${chatId}`
-      const title = messages[0].content.substring(0, 100)
+
+      const firstMessageContent = messages[0].content as string
+      const title = firstMessageContent.substring(0, 100)
 
       const chat: Chat = {
         id: chatId,
@@ -486,28 +553,36 @@ export const getUIStateFromAIState = (aiState: Chat) => {
     .map((message, index) => ({
       id: `${aiState.chatId}-${index}`,
       display:
-        message.role === 'function' ? (
-          message.name === 'listStocks' ? (
-            <BotCard>
-              <Stocks props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'showStockPrice' ? (
-            <BotCard>
-              <Stock props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'showStockPurchase' ? (
-            <BotCard>
-              <Purchase props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'getEvents' ? (
-            <BotCard>
-              <Events props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : null
+        message.role === 'tool' ? (
+          message.content.map(tool => {
+            return tool.toolName === 'listStocks' ? (
+              <BotCard>
+                {/* TODO: Infer types based on the tool result*/}
+                {/* @ts-expect-error */}
+                <Stocks props={tool.result} />
+              </BotCard>
+            ) : tool.toolName === 'showStockPrice' ? (
+              <BotCard>
+                {/* @ts-expect-error */}
+                <Stock props={tool.result} />
+              </BotCard>
+            ) : tool.toolName === 'showStockPurchase' ? (
+              <BotCard>
+                {/* @ts-expect-error */}
+                <Purchase props={tool.result} />
+              </BotCard>
+            ) : tool.toolName === 'getEvents' ? (
+              <BotCard>
+                {/* @ts-expect-error */}
+                <Events props={tool.result} />
+              </BotCard>
+            ) : null
+          })
         ) : message.role === 'user' ? (
-          <UserMessage>{message.content}</UserMessage>
-        ) : (
+          <UserMessage>{message.content as string}</UserMessage>
+        ) : message.role === 'assistant' &&
+          typeof message.content === 'string' ? (
           <BotMessage content={message.content} />
-        )
+        ) : null
     }))
 }
