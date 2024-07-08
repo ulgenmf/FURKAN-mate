@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +22,8 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { Chat } from '@prisma/client'
+import { ServerActionResult } from '@/lib/types'
 
 interface SidebarActionsProps {
   chat: Chat
@@ -42,7 +43,6 @@ export function SidebarActions({ chat, removeChat }: SidebarActionsProps) {
             variant="ghost"
             className="size-8 p-0 hover:bg-gray-100 dark:hover:bg-zinc-800"
             disabled={isRemovePending}
-            onClick={() => setDeleteDialogOpen(true)}
           >
             <IconTrash />
             <span className="sr-only">Delete</span>
@@ -80,8 +80,8 @@ export function SidebarActions({ chat, removeChat }: SidebarActionsProps) {
                   }
 
                   setDeleteDialogOpen(false)
-                  router.refresh()
                   router.push('/')
+                  router.refresh()
                   toast.success('Chat deleted')
                 })
               }}

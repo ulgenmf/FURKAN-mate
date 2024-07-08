@@ -2,46 +2,23 @@ import 'server-only'
 
 import {
   createAI,
-  createStreamableUI,
   getMutableAIState,
   getAIState,
-  render,
   createStreamableValue,
   streamUI
 } from 'ai/rsc'
 import OpenAI from 'openai'
-
-import {
-  spinner,
-  BotCard,
-  BotMessage,
-  SystemMessage,
-  Stock,
-  Purchase
-} from '@/components/stocks'
+import { BotMessage } from '@/components/stocks'
 
 // TODO: Remove Stock UI only text for now
 
-import { z } from 'zod'
-import { EventsSkeleton } from '@/components/stocks/events-skeleton'
-import { Events } from '@/components/stocks/events'
-import { StocksSkeleton } from '@/components/stocks/stocks-skeleton'
-import { Stocks } from '@/components/stocks/stocks'
-import { StockSkeleton } from '@/components/stocks/stock-skeleton'
-import {
-  formatNumber,
-  runAsyncFnWithoutBlocking,
-  sleep,
-  nanoid
-} from '@/lib/utils'
-import { saveChat } from '@/app/actions'
+import { nanoid } from '@/lib/utils'
 import { SpinnerMessage, UserMessage } from '@/components/stocks/message'
 import prismaC from '../prisma-client'
 import { OpenRouterModel_VERCEL } from '../AI-providers'
 import { Chat } from '@prisma/client'
-import { serverClient } from '../supabase/server'
+import { CoreMessage } from 'ai'
 // import { auth } from '@/auth'
-
 const openai = new OpenAI({
   // apiKey: process.env.OPENAI_API_KEY || ''
 
@@ -49,90 +26,8 @@ const openai = new OpenAI({
   baseURL: 'http://localhost:11434/v1'
 })
 
-async function confirmPurchase(symbol: string, price: number, amount: number) {
-  'use server'
-
-  const aiState = getMutableAIState<typeof AI>()
-
-  const purchasing = createStreamableUI(
-    <div className="inline-flex items-start gap-1 md:items-center">
-      {spinner}
-      <p className="mb-2">
-        Purchasing {amount} ${symbol}...
-      </p>
-    </div>
-  )
-
-  const systemMessage = createStreamableUI(null)
-
-  runAsyncFnWithoutBlocking(async () => {
-    await sleep(1000)
-
-    purchasing.update(
-      <div className="inline-flex items-start gap-1 md:items-center">
-        {spinner}
-        <p className="mb-2">
-          Purchasing {amount} ${symbol}... working on it...
-        </p>
-      </div>
-    )
-
-    await sleep(1000)
-
-    purchasing.done(
-      <div>
-        <p className="mb-2">
-          You have successfully purchased {amount} ${symbol}. Total cost:{' '}
-          {formatNumber(amount * price)}
-        </p>
-      </div>
-    )
-
-    systemMessage.done(
-      <SystemMessage>
-        You have purchased {amount} shares of {symbol} at ${price}. Total cost ={' '}
-        {formatNumber(amount * price)}.
-      </SystemMessage>
-    )
-
-    aiState.done({
-      ...aiState.get(),
-      messages: [
-        ...aiState.get().messages.slice(0, -1),
-        {
-          id: nanoid(),
-          role: 'function',
-          name: 'showStockPurchase',
-          content: JSON.stringify({
-            symbol,
-            price,
-            defaultAmount: amount,
-            status: 'completed'
-          })
-        },
-        {
-          id: nanoid(),
-          role: 'system',
-          content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${
-            amount * price
-          }]`
-        }
-      ]
-    })
-  })
-
-  return {
-    purchasingUI: purchasing.value,
-    newMessage: {
-      id: nanoid(),
-      display: systemMessage.value
-    }
-  }
-}
-
 async function submitUserMessage(content: string) {
   'use server'
-
   const aiState = getMutableAIState<typeof AI>()
 
   aiState.update({
@@ -149,12 +44,14 @@ async function submitUserMessage(content: string) {
 
   let textStream: undefined | ReturnType<typeof createStreamableValue<string>>
   let textNode: undefined | React.ReactNode
-
-  const selectedModel = aiState.get().model.name || 'server selected model'
-
-  const ui = streamUI({
+  const selectedModel = aiState.get().model.id
+  const modelSettings = aiState.get().settings
+  const result = await streamUI({
     model: OpenRouterModel_VERCEL(selectedModel),
     initial: <SpinnerMessage />,
+    system: modelSettings.prompt,
+    maxTokens: modelSettings.max_tokens,
+    temperature: modelSettings.temperature,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
@@ -186,27 +83,27 @@ async function submitUserMessage(content: string) {
       }
 
       return textNode
-    }
+    },
+    tools: {}
   })
-
   return {
     id: nanoid(),
-    display: ui
+    display: result.value
   }
 }
 
-export type Message = {
-  role: 'user' | 'assistant' | 'system' | 'function' | 'data' | 'tool'
-  content: string
+export type Message = CoreMessage & {
   id: string
-  name?: string
 }
-
 export type AIState = {
   chatId: string
-  // add model selected and other info
-  model?: any
-  messages: Message[]
+  model: any
+  messages: any
+  settings: {
+    prompt: string
+    temperature: number
+    max_tokens: number
+  }
 }
 
 export type UIState = {
@@ -216,17 +113,24 @@ export type UIState = {
 
 export const AI = createAI<AIState, UIState>({
   actions: {
-    submitUserMessage,
-    confirmPurchase
+    submitUserMessage
   },
   initialUIState: [],
-  initialAIState: { chatId: nanoid(), messages: [], model: '' },
+  initialAIState: {
+    chatId: nanoid(),
+    messages: [],
+    model: {},
+    settings: {
+      prompt: 'You are helpfull assistant',
+      temperature: 0.5,
+      max_tokens: 100
+    }
+  },
 
   onGetUIState: async () => {
     'use server'
 
-    const aiState = getAIState()
-
+    const aiState = getAIState() as Chat
     if (aiState) {
       const uiState = getUIStateFromAIState(aiState)
       return uiState
@@ -235,61 +139,67 @@ export const AI = createAI<AIState, UIState>({
 
   onSetAIState: async ({ state, done }) => {
     'use server'
-
-    const { chatId, messages, model } = state
+    const { chatId, messages, model, settings } = state
 
     const createdAt = new Date()
     const path = `/chat/${chatId}`
-    const title = messages[0].content.substring(0, 100)
-    const {
-      data: { user }
-    } = await serverClient().auth.getUser()
+    const firstMessageContent = messages[0].content as string
+    const title = firstMessageContent.substring(0, 100)
 
     const chat: Chat = {
       id: chatId,
       title,
-      sharePath: null,
-      createdAt,
-      modelId: model,
       path,
-      userId: user!.id
+      settings,
+      model,
+      modelId: model.id,
+      messages,
+      createdAt,
+      sharePath: null
     }
-
-    await saveChat(chat)
+    await prismaC.chat.upsert({
+      where: {
+        id: chatId // Assuming `chatId` uniquely identifies a chat
+      },
+      update: {
+        title,
+        path,
+        settings,
+        model,
+        messages,
+        createdAt: createdAt,
+        sharePath: null
+      },
+      create: {
+        id: chatId,
+        title,
+        path,
+        settings,
+        model,
+        messages,
+        createdAt: createdAt,
+        sharePath: null,
+        modelId: model.id
+      }
+    })
   }
 })
-interface getUIStateFromAIStateProps extends Chat {
-  messages: Message[]
-}
 
-export const getUIStateFromAIState = (aiState: getUIStateFromAIStateProps) => {
-  return aiState.messages
-    .filter(message => message.role !== 'system')
-    .map((message, index) => ({
-      id: `${aiState.id}-${index}`,
-      display:
-        message.role === 'function' ? (
-          message.name === 'listStocks' ? (
-            <BotCard>
-              <Stocks props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'showStockPrice' ? (
-            <BotCard>
-              <Stock props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'showStockPurchase' ? (
-            <BotCard>
-              <Purchase props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : message.name === 'getEvents' ? (
-            <BotCard>
-              <Events props={JSON.parse(message.content)} />
-            </BotCard>
-          ) : null
-        ) : message.role === 'user' ? (
-          <UserMessage>{message.content}</UserMessage>
-        ) : (
-          <BotMessage content={message.content} />
-        )
-    }))
+export const getUIStateFromAIState = async (aiState: Chat) => {
+  return (
+    aiState
+      // @ts-ignore
+      .messages!.filter(
+        (message: { role?: string }) => message && message.role !== 'system'
+      ) // @ts-ignore
+      .map((message, index) => ({
+        id: `${aiState.id}-${index}`,
+        display:
+          message.role === 'user' ? (
+            <UserMessage>{message.content as string}</UserMessage>
+          ) : (
+            <BotMessage content={message.content} />
+          )
+      }))
+  )
 }

@@ -3,6 +3,14 @@ import { ClearHistory } from '@/components/clear-history'
 import { SidebarItems } from '@/components/sidebar-items'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { cache } from 'react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from './ui/tooltip'
+import { Button } from './ui/button'
+import { Trash2 } from 'lucide-react'
 
 interface SidebarListProps {
   children?: React.ReactNode
@@ -34,7 +42,19 @@ export async function SidebarList({}: SidebarListProps) {
       </div>
       <div className="flex items-center justify-between p-4">
         <ThemeToggle />
-        <ClearHistory clearChats={clearChats} isEnabled={chats?.length > 0} />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button className="cursor-not-allowed" variant="outline">
+                <Trash2 className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className='p-2 text-base'>You can not delete messages</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        {/* <ClearHistory isEnabled={chats?.length > 0} /> */}
       </div>
     </div>
   )

@@ -1,10 +1,13 @@
+'use server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export function serverClient() {
+export const serverClient = async () => {
+  'use server'
+
   const cookieStore = cookies()
 
-  return createServerClient(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -20,4 +23,5 @@ export function serverClient() {
       }
     }
   )
+  return supabase
 }

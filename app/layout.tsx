@@ -1,6 +1,6 @@
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Roboto } from 'next/font/google'
 
 import '@/styles/globals.css'
@@ -8,9 +8,6 @@ import { cn } from '@/lib/utils'
 // import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/ui/sonner'
-import { Header } from '@/components/header'
-import Link from 'next/link'
-import { fetchAndStoreModels } from './actions'
 
 export const metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
@@ -49,7 +46,6 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export default function RootLayout({ children }: RootLayoutProps) {
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -67,12 +63,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-          {/* <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex flex-col flex-1 bg-muted/50">{children}</main>
-          </div> */}
           <div className="flex flex-col min-h-screen">
-            {/* <Header /> */}
             <main className="flex flex-col flex-1   bg-background">
               {children}
             </main>

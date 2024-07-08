@@ -14,7 +14,7 @@ export function ErrorToast() {
   useEffect(() => {
     if (error) {
       setErr(error)
-      toast.error(err)
+      toast.error(error)
     }
 
     setTimeout(() => {

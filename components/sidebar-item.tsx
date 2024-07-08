@@ -15,9 +15,9 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { type Chat } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAIState } from 'ai/rsc'
+import { Chat } from '@prisma/client'
 
 interface SidebarItemProps {
   index: number
@@ -32,7 +32,8 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
   const [newChatId, setNewChatId] = useLocalStorage('newChatId', null)
   const shouldAnimate = index === 0 && isActive && newChatId
 
-  const icon = getModelIcon(chat.model.created_by)
+  // @ts-ignore
+  const icon = getModelIcon(chat.model!.architecture.tokenizer)
 
   if (!chat?.id) return null
 

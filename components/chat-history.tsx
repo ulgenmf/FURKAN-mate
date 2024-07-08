@@ -15,7 +15,7 @@ export function ChatHistory({}: ChatHistoryProps) {
     <div className="flex flex-col h-full">
       <div className="mt-3 px-2">
         <Link
-          href="/"
+          href="/chat"
           className={cn(
             buttonVariants({ variant: 'outline' }),
             'h-10 w-full justify-start bg-background px-4 shadow-none transition-colors hover:bg-zinc-200/40 dark:hover:bg-zinc-300/10'
@@ -37,7 +37,7 @@ export function ChatHistory({}: ChatHistoryProps) {
           </div>
         }
       >
-        <SidebarList  />
+        <SidebarList />
       </React.Suspense>
     </div>
   )

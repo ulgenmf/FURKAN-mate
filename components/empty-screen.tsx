@@ -1,7 +1,6 @@
 import { UseChatHelpers } from 'ai/react'
 
 import { Button } from '@/components/ui/button'
-import { ExternalLink } from '@/components/external-link'
 import {
   IconArrowRight,
   IconGitHub,
@@ -35,28 +34,26 @@ const exampleMessages = [
 export function EmptyScreen() {
   const [aiState] = useAIState()
   const selected = aiState.model
-  console.log(selected)
-  // const icon = getModelIcon(selected.data.architecture.tokenizer)
-  const icon = 's'
+  const icon = getModelIcon(selected.architecture.tokenizer)
+
   // get the first 5 prompts
   const examplePrompts = prompts.slice(87, 91)
 
   return (
     <div className="mx-auto max-w-2xl  px-4 pt-6 md:pt-16">
-      <Card>
-        <div className="px-6 pt-5 text-sm bg-background rounded-t-lg">
-          <div className="flex items-center">
-            {icon}
-            {/* <p className="capitalize">{selected.id}</p> */}
-
-
+      {selected ? (
+        <Card>
+          <div className="px-6 pt-5 text-sm bg-background rounded-t-lg">
+            <div className="flex items-center">
+              {icon}
+              <p className="capitalize ml-2">{selected.name}</p>
+            </div>
+            <div className="mt-4 text-xs text-zinc-500 dark:text-noble-black-300">
+              {selected.description}
+            </div>
           </div>
-          <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-            {selected.description}
-          </div>
-        </div>
-        <CardContent className="px-6 py-5 text-xs bg-background ">
-          {/* <div className="flex items-start py-3">
+          <CardContent className="px-6 py-5 text-xs bg-background ">
+            {/* <div className="flex items-start py-3">
             <div className="font-medium w-28">Context</div>
             <div className="flex-1 text-zinc-600 dark:text-zinc-400">
             </div>
@@ -71,22 +68,25 @@ export function EmptyScreen() {
             <div className="flex-1 text-zinc-600 dark:text-zinc-400">
             </div>
           </div> */}
-          <div className="text-muted-foreground">
-            You can start a conversation here or try the following examples:
-          </div>
+            <div className="text-muted-foreground">
+              You can start a conversation here or try the following examples:
+            </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            {examplePrompts.map((prompt: any, index: any) => (
-              <PromptCardHome key={index} prompt={prompt} />
-            ))}
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {examplePrompts.map((prompt: any, index: any) => (
+                <PromptCardHome key={index} prompt={prompt} />
+              ))}
+            </div>
+          </CardContent>
+          <div className="px-6 py-5 text-xs font-medium border-t rounded-b-lg bg-zinc-100/75 dark:bg-background">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between space-x-4"></div>
+            </div>
           </div>
-        </CardContent>
-        <div className="px-6 py-5 text-xs font-medium border-t rounded-b-lg bg-zinc-100/75 dark:bg-background">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center justify-between space-x-4"></div>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        ''
+      )}
     </div>
   )
 }

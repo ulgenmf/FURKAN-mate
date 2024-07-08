@@ -4,7 +4,7 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp, Waypoints } from 'lucide-react'
 
 function IconNextChat({
   className,
@@ -18,7 +18,7 @@ function IconNextChat({
       viewBox="0 0 17 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn('size-4', className)}
+      className={cn('size-2')}
       {...props}
     >
       <defs>
@@ -603,8 +603,8 @@ function MetaLlama({ className, ...props }: React.ComponentProps<'svg'>) {
 function Mistral({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
-      width="176"
-      height="162"
+      width="20"
+      height="20"
       viewBox="0 0 176 162"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -784,81 +784,96 @@ function Lava() {
   return <div className="size-fit">🌋</div>
 }
 
-function Gemma() {
+function Gemma({ h = 20, w = 20 }: { h?: number; w?: number }) {
   return (
     <div className="size-4">
       <Image
         src="/gemma.png"
         alt="Gemma"
-        width={64}
-        height={64}
+        width={h}
+        height={w}
         className="size-full aspect-square"
       />
     </div>
   )
 }
 
+export function customImage({ src, heigh = 20, witdh = 20, ...props }: any) {
+  return (
+    <Image src={`/${src}.png`} height={heigh} width={witdh} alt={src}></Image>
+  )
+}
+
 // get model icon by name
-function getModelIcon(name: string) {
+function getModelIcon(name: string, h?: number, w?: number) {
   switch (name) {
     case 'Meta':
-      return <MetaLlama className="size-4" />
+      return <Llama />
     case 'Mistral':
-      return <Mistral className="size-3.5" />
+      return <Mistral className="size-3. h={h} w={w}5" />
     case 'Cohere':
-      return <Cohere />
+      return <Cohere h={h} w={w} />
     case 'PaLM':
-      return <Palm />
+      return <Palm h={h} w={w} />
     case 'Yi':
-      return <Yi />
+      return <Yi h={h} w={w} />
     case 'Qwen':
-      return <Qwen />
+      return <Qwen h={h} w={w} />
     case 'RWKV':
-      return <RWKV />
+      return <RWKV h={h} w={w} />
     case 'Other':
-      return <Other />
+      return <Other h={h} w={w} />
     case 'Gemini':
-      return <Gemini />
+      return <Gemini h={h} w={w} />
     case 'Google':
-      return <Gemma />
+      return <Gemma h={h} w={w} />
     case 'Gemini':
-      return <Gemini />
+      return <Gemini h={h} w={w} />
     case 'GPT':
-      return <GPT />
+      return <GPT h={h} w={w} />
     case 'Claude':
-      return <Claude />
+      return <Claude h={h} w={w} />
     case 'Llama2':
-      return <MetaLlama />
+      return <Llama />
     case 'Llama3':
-      return <MetaLlama />
+      return <Llama />
     default:
       return <IconNextChat />
   }
 }
 
-function Palm() {
-  return <Image width={20} height={20} src={'/Palm.png'} alt="Palm" />
+function Palm({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Palm.png'} alt="Palm" />
 }
-function Cohere() {
-  return <Image width={20} height={20} src={'/Cohere.png'} alt="Cohere" />
+function Cohere({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Cohere.png'} alt="Cohere" />
 }
-function Gemini() {
-  return <Image width={20} height={20} src={'/Gemini.png'} alt="Gemini" />
+function Gemini({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Gemini.png'} alt="Gemini" />
 }
-function GPT() {
-  return <Image width={20} height={20} src={'/GPT.png'} alt="GPT" />
+function GPT({ h = 20, w = 20 }) {
+  return <Image width={w} height={h} src={'/GPT.png'} alt="GPT" />
 }
-function Llama() {
-  return <Image width={20} height={30} src={'/Llama.png'} alt="Llama" />
+function Llama({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Llama.png'} alt="Llama" />
 }
-function Other() {
-  return <CircleHelp width={20} height={20} className="text-white" />
+function Other({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Waypoints width={w} height={h} className="text-white size-5" />
 }
-function Yi() {
+function Qwen({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Qwen.png'} alt="Qwen" />
+}
+function RWKV({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/RWKV.png'} alt="RWKV" />
+}
+function Claude({ h = 20, w = 20 }: { h?: number; w?: number }) {
+  return <Image width={w} height={h} src={'/Claude.png'} alt="Claude" />
+}
+function Yi({ h = 20, w = 20 }: { h?: number; w?: number }) {
   return (
     <svg
-      width="20"
-      height="20"
+      width={h}
+      height={w}
       viewBox="0 0 600 600"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -888,15 +903,6 @@ function Yi() {
       <circle cx="460.126" cy="279.278" r="25.9027" fill="#00FF25" />
     </svg>
   )
-}
-function Qwen() {
-  return <Image width={20} height={20} src={'/Qwen.png'} alt="Qwen" />
-}
-function RWKV() {
-  return <Image width={20} height={20} src={'/RWKV.png'} alt="RWKV" />
-}
-function Claude() {
-  return <Image width={20} height={20} src={'/Claude.png'} alt="Claude" />
 }
 
 export {
@@ -936,4 +942,95 @@ export {
   IconPaperPlane,
   ArrowUpFromLine,
   getModelIcon
+}
+
+import {
+  Hexagon,
+  Diamond,
+  Spade,
+  Circle,
+  Club,
+  Octagon,
+  Pentagon,
+  Squircle,
+  Triangle,
+  Croissant,
+  CupSoda,
+  Donut,
+  Egg,
+  ChefHat,
+  Wheat,
+  Sparkles,
+  Leaf,
+  Worm,
+  Pi,
+  TriangleRight,
+  ShoppingBasket
+} from 'lucide-react'
+
+const shapes = {
+  Hexagon,
+  Diamond,
+  Spade,
+  Circle,
+  Club,
+  Octagon,
+  Pentagon,
+  Squircle,
+  Triangle,
+  Croissant,
+  CupSoda,
+  Donut,
+  Egg,
+  ChefHat,
+  Wheat,
+  Sparkles,
+  Leaf,
+  Worm,
+  Pi,
+  TriangleRight,
+  ShoppingBasket
+}
+
+const colors = [
+  'day-blue-400',
+  'purple-blue-400',
+  'sunglow-400',
+  'heisenberg-blue-400',
+  'happy-orange-600',
+  'electric-green-600',
+  'rose-400',
+  'cyan-400',
+  'stem-green-400',
+  'orange-400'
+]
+
+export function IconList({ n = 40 }) {
+  const shapeNames = Object.keys(shapes)
+
+  return (
+    <>
+      {Array.from({ length: n }, (_, i) => {
+        const shapeName = shapeNames[i % shapeNames.length]
+        // @ts-ignore
+        const ShapeComponent = shapes[shapeName]
+        const color = colors[i % colors.length]
+
+        return <ShapeComponent key={i} size={24} className={`text-${color}`} />
+      })}
+    </>
+  )
+}
+
+export function RandomIcon() {
+  const shapeNames = Object.keys(shapes)
+  const randomShapeIndex = Math.floor(Math.random() * shapeNames.length)
+  const randomColorIndex = Math.floor(Math.random() * colors.length)
+
+  const randomShapeName = shapeNames[randomShapeIndex]
+  // @ts-ignore
+  const RandomShapeComponent = shapes[randomShapeName]
+  const color = colors[randomColorIndex]
+
+  return <RandomShapeComponent size={24} className={`text-${color}`} />
 }

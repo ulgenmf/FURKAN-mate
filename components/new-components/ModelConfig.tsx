@@ -28,9 +28,7 @@ import {
   CirclePlus
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { getModelsList } from '../actions'
-import { AIModelPool, Prisma } from '@prisma/client'
-import { AIJSON, jsonType } from '@/lib/types'
+import { Prisma } from '@prisma/client'
 
 export function ModelConfig({ fetchedModels }: { fetchedModels: any[] }) {
   return (
@@ -56,7 +54,7 @@ export function ModelConfig({ fetchedModels }: { fetchedModels: any[] }) {
   )
 }
 
-export function ModalList({ models }: { models: AIJSON[] }) {
+export function ModalList({ models }: { models: any[] }) {
   function onModelClick(a: any) {
     return
   }
@@ -117,7 +115,7 @@ export function CheckBox() {
     <div className="inline-flex w-fit items-center">
       <input
         type="checkbox"
-        className="form-checkbox h-5 w-5 text-blue-600"
+        className="form-checkbox size-5 text-blue-600"
         checked={isCheck} // Bind the checked attribute to the isCheck state
         onChange={handleChange} // Handle changes to update the state
       />

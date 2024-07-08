@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { login } from '../auth-actions'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -53,7 +52,7 @@ export default function LoginPage() {
           {!isLoading ? (
             <Button
               type="submit"
-              formAction={login}
+              // formAction={login}
               className="w-full bg-stem-green-500"
             >
               Login
@@ -61,7 +60,7 @@ export default function LoginPage() {
           ) : (
             <div className="mx-auto p-2">
               <div
-                className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full"
+                className="spinner-border animate-spin inline-block size-8 border-4 rounded-full"
                 role="status"
               >
                 <span className="visually-hidden">Loading...</span>

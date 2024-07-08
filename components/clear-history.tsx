@@ -18,16 +18,13 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { IconSpinner } from '@/components/ui/icons'
+import { clearChats } from '@/app/actions'
 
 interface ClearHistoryProps {
   isEnabled: boolean
-  clearChats: () => ServerActionResult<void>
 }
 
-export function ClearHistory({
-  isEnabled = false,
-  clearChats
-}: ClearHistoryProps) {
+export function ClearHistory({ isEnabled = false }: ClearHistoryProps) {
   const [open, setOpen] = React.useState(false)
   const [isPending, startTransition] = React.useTransition()
   const router = useRouter()
@@ -55,13 +52,14 @@ export function ClearHistory({
             onClick={event => {
               event.preventDefault()
               startTransition(async () => {
-                const result = await clearChats()
-                if (result && 'error' in result) {
-                  toast.error(result.error)
-                  return
+                try {
+                  clearChats()
+                  setOpen(false)
+                  toast.success('All Messages Deleted')
+                  router.push('/')
+                } catch (error) {
+                  toast
                 }
-
-                setOpen(false)
               })
             }}
           >

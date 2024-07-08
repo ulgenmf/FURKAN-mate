@@ -2,24 +2,6 @@ import { Prisma } from '@prisma/client'
 import { JsonValue } from '@prisma/client/runtime/library'
 import { Message } from 'ai'
 
-
-
-export interface Model {
-  id: number
-  name: string
-  type: string
-  installed: boolean
-  created_by: string
-  context_length: number
-  description: string
-  label: string
-  memory: string
-  storage: string
-  config: Record<string, any>
-  max_config: Record<string, any>
-  min_config: Record<string, any>
-}
-
 export type ServerActionResult<Result> = Promise<
   | Result
   | {
@@ -34,7 +16,21 @@ export interface User extends Record<string, any> {
   salt: string
 }
 
-export interface Models {
-  id: string
-  data: JsonValue
+// export interface Chat extends Record<string, any> {
+//   id: string
+//   title: string
+//   createdAt: Date
+//   modelId: string
+//   modelTokenizer: string
+//   path: string
+//   sharePath: string | null
+//   userId: string
+//   messages: Message[]
+//   model: JSON
+// }
+
+export interface ChatSettings {
+  prompt: string
+  temperature: number
+  max_tokens: number
 }

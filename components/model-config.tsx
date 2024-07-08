@@ -9,7 +9,6 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import { getModelIcon } from '@/components/ui/icons'
-import { Models } from '@/lib/types'
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,9 +27,11 @@ import { MixerHorizontalIcon } from '@radix-ui/react-icons'
 import { useState } from 'react'
 
 export function ModelConfig({
-  allModels
+  allModels,
+  userModels
 }: {
-  allModels: Array<{ id: string; data: any }>
+  allModels: Array<any>
+  userModels: any[]
 }) {
   function onModelClick(mdl: any) {}
   return (
@@ -39,21 +40,22 @@ export function ModelConfig({
         {' '}
         <MixerHorizontalIcon />
       </DialogTrigger>
-      <DialogContent className="flex flex-col h-3/4  w-screen overflow-auto">
-        <DialogTitle>Are you absolutely sure?</DialogTitle>
-        <DialogDescription>asd</DialogDescription>
+      <DialogContent className="flex text-center flex-col h-3/4 text-xs  md:text-base   w-screen overflow-auto">
+        <DialogTitle>Check Out The Other Models</DialogTitle>
+        <DialogDescription>You Can't Use Them ATM</DialogDescription>
         {allModels.map(mdl => (
           <Collapsible
             key={mdl.id}
             className=" flex flex-col font-GeistSans  text-white border border-noble-black-800 hover:border-stem-green-500 duration-200 border-collapse rounded-lg p-2 justify "
           >
+            {/* //TODO add button style to the model-confid, make it more responsive */}
             <div className="flex items-start justify-start">
-              <SaveModel onClick={() => onModelClick(mdl)} />
+              <SaveModel isSelected={false} onClick={() => onModelClick(mdl)} />
               <CollapsibleTrigger className="flex flex-col flex-1 text-center relative items-center justify-center ">
                 <div className="flex gap-2  w-full      justify-start items-center  pl-10">
-                  {getModelIcon(`${mdl.data!.architecture.tokenizer}`)}
-                  <p className="max-w-72 truncate  p-1  duration-300   overflow-clip ">
-                    {mdl.data.name}
+                  {getModelIcon(`${mdl.architecture.tokenizer}`)}
+                  <p className="max-w-72 truncate  p-1  duration-300   text-clip ">
+                    {mdl.name}
                   </p>
                 </div>
 
@@ -61,25 +63,20 @@ export function ModelConfig({
                   <div className="flex flex-col   p-1">
                     Context
                     <div className="border-b border-stem-green-500/50" />
-                    <span className="ml-1  m-1">{mdl.data.context_length}</span>
+                    <span className="m-1">{mdl.context_length}</span>
                   </div>{' '}
                   <div className="flex flex-col   p-1">
                     Input
                     <div className="border-b border-stem-green-500/50" />
                     <span className="ml-1 mt-1">
-                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
-                        2
-                      )}{' '}
-                      $
+                      {(parseFloat(mdl.pricing.prompt) * 100000).toFixed(2)} $
                     </span>
                   </div>{' '}
                   <div className="flex flex-col   p-1">
                     Output
                     <div className="border-b border-stem-green-500/50" />
                     <span className="ml-1 mt-1">
-                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
-                        2
-                      )}{' '}
+                      {(parseFloat(mdl.pricing.completion) * 100000).toFixed(2)}{' '}
                       $
                     </span>
                   </div>{' '}
@@ -87,10 +84,10 @@ export function ModelConfig({
                     Image
                     <div className="border-b border-stem-green-500/50" />
                     <span className="ml-1  mt-1">
-                      {(parseFloat(mdl.data.pricing.prompt) * 100000).toFixed(
-                        2
-                      )}{' '}
-                      $
+                      {mdl.pricing.image !== '0'
+                        ? (parseFloat(mdl.pricing.image) * 100000).toFixed(2) +
+                          '$'
+                        : '-'}
                     </span>
                   </div>
                 </div>
@@ -105,9 +102,9 @@ export function ModelConfig({
             </div>
             <CollapsibleContent className="flex flex-col  py-2">
               <p className="p-2 border-y text-center    break-words border-x-lime-400">
-                {mdl.data.description}
+                {mdl.description}
                 <Link
-                  href={`https://openrouter.ai/models/${mdl.data.id}`}
+                  href={`https://openrouter.ai/models/${mdl.id}`}
                   passHref
                   legacyBehavior
                 >
@@ -138,7 +135,7 @@ export function CheckBox() {
     <div className="inline-flex w-fit items-center">
       <input
         type="checkbox"
-        className="form-checkbox h-5 w-5 text-blue-600"
+        className="form-checkbox size-5 text-blue-600"
         checked={isCheck} // Bind the checked attribute to the isCheck state
         onChange={handleChange} // Handle changes to update the state
       />
@@ -148,10 +145,10 @@ export function CheckBox() {
 
 interface SaveModelProps {
   onClick: () => void
+  isSelected: boolean
 }
 
-export function SaveModel({ onClick }: SaveModelProps) {
-  const isSelected = false
+export function SaveModel({ onClick, isSelected }: SaveModelProps) {
   return (
     <>
       {isSelected ? (
@@ -161,18 +158,25 @@ export function SaveModel({ onClick }: SaveModelProps) {
           size={'icon'}
           className=" active:scale-110 active:duration-200 transition-transform bg-transparent hover:bg-transparent text-white border hover:border-stem-green-400"
         >
-          {' '}
           <CircleMinus height={20} width={20} strokeWidth={1.5} />
         </Button>
       ) : (
-        <Button
-          onClick={onClick}
-          variant="outline"
-          size={'icon'}
-          className=" active:scale-110 active:duration-200 transition-transform bg-transparent hover:bg-transparent text-white border hover:border-stem-green-400"
-        >
-          <CirclePlus height={20} width={20} strokeWidth={1.5} />
-        </Button>
+        <div className="cursor-not-allowed bg-transparent z-50">
+          <Button
+            onClick={onClick}
+            variant="outline"
+            disabled
+            size={'icon'}
+            className="cursor-not-allowed active:scale-110 active:duration-200 transition-transform bg-transparent hover:bg-transparent text-white border hover:border-stem-green-400"
+          >
+            <CirclePlus
+              className="cursor-not-allowed"
+              height={20}
+              width={20}
+              strokeWidth={1.5}
+            />
+          </Button>
+        </div>
       )}
     </>
   )

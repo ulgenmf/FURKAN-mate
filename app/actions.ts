@@ -1,5 +1,4 @@
-// GLOBAL: Auth: userId: "123"
-
+'use server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -8,17 +7,43 @@ import axios from 'axios'
 import prismaC from '@/lib/prisma-client'
 import { cache } from 'react'
 import { serverClient } from '@/lib/supabase/server'
+import { customModelTemp } from '@/database/custom-model'
+import { supaGetAuth } from '@/lib/db-utils'
 
 export async function getChats(): Promise<Chat[]> {
-  const {
-    data: { user }
-  } = await serverClient().auth.getUser()
-
-  const chats = await prismaC.chat.findMany({
-    where: { userId: user?.id }
-  }) // Use optional
+  const chats = await prismaC.chat.findMany({})
   return chats
 }
+
+export async function getUserAuth() {
+  const supa = await serverClient()
+  const {
+    data: { user }
+  } = await supa.auth.getUser()
+
+  return user
+}
+
+export async function logOut() {
+  const supabase = await serverClient()
+
+  const { error } = await supabase.auth.signOut()
+}
+// export async function getUserData() {
+//   const user = await getUserAuth()
+//   const userD = await prismaC.user.findFirst({ where: { id: user!.id } })
+//   return userD
+// }
+
+// export async function clearchats(id: string) {
+//   const user = await getUserAuth()
+//   await prismaC.chat.deleteMany({
+//     where: {
+//       userId: user!.id
+//     }
+//   })
+//   revalidatePath('/', 'layout')
+// }
 
 // Function to get a single chat by ID
 export async function getChat(chatId: string): Promise<Chat | null> {
@@ -28,10 +53,13 @@ export async function getChat(chatId: string): Promise<Chat | null> {
 }
 
 // Function to remove a chat by ID
-export async function removeChat(chatId: string): Promise<void> {
+export async function removeChat({ id, path }: { id: string; path: string }) {
   await prismaC.chat.delete({
-    where: { id: chatId }
+    where: { id: id }
   })
+
+  revalidatePath('/', 'page')
+  return revalidatePath(path)
 }
 
 // Function to clear all chats
@@ -50,46 +78,89 @@ export async function isOllamaAvailable() {
     return false
   }
 }
-export async function saveChat(newChat: Chat): Promise<Chat> {
-  return await prismaC.chat.create({
-    data: newChat
-  })
-}
 
 // create a sync function to sync installed models with supported models by getting installed models and then updating the supported models installed field to true.
 
-export async function fetchAndStoreModels() {
-  try {
-    let response = await fetch('https://openrouter.ai/api/v1/models', {
-      method: 'GET'
-    })
+// export async function fetchAndStoreModels() {
+//   console.log(
+//     '\x1b[32m ################################################# \x1b[0m'
+//   )
+//   console.log(
+//     '\x1b[33m ################################################# \x1b[0m'
+//   )
+//   console.log()
+//   console.log('main api called')
+//   try {
+//     let response = await fetch('https://openrouter.ai/api/v1/models', {
+//       method: 'GET'
+//     })
 
-    let data = await response.json()
+//     let data = await response.json()
 
-    for (const model of data.data) {
-      if (model && model.id) {
-        await prismaC.aIModelPool.upsert({
-          where: { id: model.id },
-          update: { data: model },
-          create: { id: model.id, data: model }
-        })
-      } else {
-        console.log('Invalid model data:', model)
-      }
-    }
+//     for (const model of data.data) {
+//       if (model && model.id) {
+//         await prismaC.aIModelPool.upsert({
+//           where: { id: model.id },
+//           update: { data: model },
+//           create: { id: model.id, data: model, isSaved: false }
+//         })
+//       } else {
+//       }
+//     }
 
-    console.log('Models updated successfully')
-  } catch (error) {
-    console.error('Error fetching or storing models:', error)
-  }
-}
+//     console.error('Models updated successfully')
+//   } catch (error) {
+//     console.error('Error fetching or storing models:', error)
+//   }
+// }
 
-export const getModelsList = async () => {
-  const models = await prismaC.aIModelPool.findMany()
-  return models
-}
+// export const getModelsList = async () => {
+//   console.log('getmodelst called')
+//   const models = await prismaC.aIModelPool.findMany()
+//   if (models.length == 0) {
+//     console.log('models are being again 1000')
+//     await fetchAndStoreModels()
+//   }
+//   return models
+// }
 
-export const createUserModel = async (userId: string) => {}
+// export async function getUserTokenizer(modelId: string) {
+//   const tokenizer = await prismaC.userModel.findFirst({
+//     where: {
+//       userId: modelId
+//     }
+//   })
+//   return tokenizer
+// }
+// // export async function getUserModels() {
+
+//   const model = await prismaC.userModel.findMany({})
+//   if (model.length == 0) {
+//     await prismaC.userModel.create({
+//       data: { data: customModelTemp, id: customModelTemp.id, userId: user!.id }
+//     })
+//   }
+//   return model
+// }
+// export async function createUserModel({ model }: { model: any }) {
+//   try {
+//     const newModel = await prismaC.userModel.create({
+//       data: {
+//         userId: user!.id,
+//         id: model.id,
+//         data: model
+//       }
+//     })
+//     return newModel
+//   } catch (error) {
+//     console.error('Failed to create user model:', error)
+//     throw new Error(
+//       `Error creating user model for ${user}: ${error instanceof Error ? error.message : String(error)}`
+//     )
+//   }
+// }
+
+// TODO  create error handling, logging
 
 //  ********************** OLLAMA **********************
 
@@ -104,7 +175,6 @@ export const createUserModel = async (userId: string) => {}
 //     return false
 //   }
 // }
-
 // // create a sync function to sync installed models with supported models by getting installed models and then updating the supported models installed field to true.
 
 // export async function getOllamaModels() {

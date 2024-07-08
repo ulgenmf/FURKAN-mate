@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { ModelItem } from './model-selector-item'
 import { useAIState } from 'ai/rsc'
 import { getModelIcon } from '@/components/ui/icons'
-import { Models } from '@/lib/types'
 import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
@@ -23,7 +22,7 @@ import {
 } from '@/components/ui/popover'
 
 interface ModelSelectorProps {
-  usersModels: Models[]
+  usersModels: any[]
 }
 
 export function ModelSelector({ usersModels }: ModelSelectorProps) {
@@ -39,29 +38,23 @@ export function ModelSelector({ usersModels }: ModelSelectorProps) {
   const [selectedModel, setSelectedModel] = React.useState<any>(
     aiState.model ?? usersModels[0].id
   )
-
-  // const icon = getModelIcon(selectedModel?.data.architecture.tokenizer)
-  const icon = 's'
-
+  const icon = getModelIcon(selectedModel.architecture.tokenizer)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <button
           role="combobox"
           aria-expanded={open}
           aria-label="Select a model"
-          className="min-w-56 justify-between"
+          className="items-center w-1/3 md:min-w-max  flex border p-2 rounded-xl  overflow-hidden  justify-between"
         >
-          <div className="flex flex-row">
-            <span className="mr-2">{icon}</span>
-            <span className="truncate text-xs">
-              {selectedModel.created_by} - {selectedModel.label}
-            </span>
-          </div>
+          <span className="mr-2">{icon}</span>
+          <span className="truncate text-clip text-xs">
+            {selectedModel.name}
+          </span>
 
           <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
+        </button>
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-56 p-0">
@@ -69,11 +62,12 @@ export function ModelSelector({ usersModels }: ModelSelectorProps) {
           <CommandInput placeholder="Search Models..." />
           <CommandList className="h-fit max-h-[300px] overflow-y-auto overflow-x-hidden md:max-h-[450px] z-50">
             <CommandEmpty>No Models found.</CommandEmpty>
-            <CommandGroup heading="Private AI">
+            <CommandGroup heading="">
               {usersModels.map(model => (
                 <ModelItem
                   key={model.id}
-                  model={model.id}
+                  // @ts-ignore
+                  model={model}
                   isSelected={selectedModel?.id === model.id}
                   onPeek={model => setPeekedModel(model)}
                   onSelect={() => {

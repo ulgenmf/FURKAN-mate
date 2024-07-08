@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { IconCopy, IconOllama } from './ui/icons'
+import { IconCopy } from './ui/icons'
 import { DownloadIcon } from '@radix-ui/react-icons'
 
 // Get up and running with large language models locally.
@@ -100,7 +100,7 @@ function ClickToCopyCommand({ command }: { command: string }) {
   return (
     <div className="flex flex-row">
       <Input
-        className="border-l-0 rounded-r-none  border-[1px]"
+        className="border-l-0 rounded-r-none  border"
         defaultValue={command}
         readOnly
       />

@@ -8,6 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { InputProvider } from '@/lib/hooks/use-form-input'
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
+
   return (
     <NextThemesProvider {...props}>
       <SidebarProvider>

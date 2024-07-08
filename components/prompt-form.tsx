@@ -24,7 +24,7 @@ export function PromptForm() {
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const { submitUserMessage } = useActions()
-  const [_, setMessages] = useUIState<typeof AI>()
+  const [messages, setMessages] = useUIState<typeof AI>()
 
   const { inputValue, setInputValue } = useInput()
 
@@ -60,6 +60,7 @@ export function PromptForm() {
 
         // Submit and get response message
         const responseMessage = await submitUserMessage(value)
+
         setMessages(currentMessages => [...currentMessages, responseMessage])
       }}
     >

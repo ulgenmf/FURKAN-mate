@@ -1,12 +1,12 @@
 'use client'
 
-import { Chat } from '@/lib/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { removeChat } from '@/app/actions'
 
 import { SidebarActions } from '@/components/sidebar-actions'
 import { SidebarItem } from '@/components/sidebar-item'
+import { Chat } from '@prisma/client'
 
 interface SidebarItemsProps {
   chats?: Chat[]
@@ -28,11 +28,12 @@ export function SidebarItems({ chats }: SidebarItemsProps) {
               }}
             >
               <SidebarItem index={index} chat={chat}>
-                <SidebarActions
+                {/* <SidebarActions
                   chat={chat}
                   removeChat={removeChat}
                   // shareChat={shareChat}
-                />
+                /> */}
+                <></>
               </SidebarItem>
             </motion.div>
           )

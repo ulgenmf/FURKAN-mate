@@ -10,15 +10,26 @@ import remarkMath from 'remark-math'
 import { StreamableValue, useAIState } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 import { ChatMessageActions } from '../chat-message-actions'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+
+import { useState } from 'react'
 
 // Different types of message bubbles.
-
-export function UserMessage({ children }: { children: React.ReactNode }) {
+export function UserMessage({
+  children,
+  profile
+}: {
+  children: React.ReactNode
+  profile?: string
+}) {
   return (
     <div className="group relative flex items-start -ml-8">
       {/* shadow-sm" */}
       <div className="flex size-[30px] shrink-0 select-none items-center justify-center rounded-md border">
-        <IconUser />
+        <Avatar>
+          <AvatarImage src={'https://github.com/shadcn.png'} />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>{' '}
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden pl-2 dark:text-gray-300 text-gray-700">
         {children}
@@ -37,14 +48,14 @@ export function BotMessage({
   const text = useStreamableText(content)
 
   const [aiState] = useAIState()
-  const icon = getModelIcon(aiState.model.created_by)
+  const icon = getModelIcon(aiState.model.architecture.tokenizer,25,25)
 
   // TODO: Make chat actions show on hover and copy message
 
   return (
     <div className={cn('group relative flex items-start -ml-8', className)}>
       {/* bg-primary text-primary-foreground shadow-sm */}
-      <div className="flex size-[28px] shrink-0 select-none items-center justify-center rounded-md border bg-background">
+      <div className="flex size-[28px] shrink-0 select-none items-center justify-center rounded-md  bg-background">
         {/* <IconOpenAI /> */}
         <span>{icon}</span>
       </div>
